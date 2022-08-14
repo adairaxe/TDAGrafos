@@ -44,6 +44,16 @@ public class Graph_AM<V, E> {
     
     
     
+    private int findVertex(V vertex1) {
+        for (int i = 0; i < this.effectiveSize; i++) {
+            if (cmpVertices.compare(vertex1, vertices[i]) == 1)
+                return i;
+        }
+        return -1;
+    }
+    
+    
+    
     public boolean connect(V vertex1, V vertex2, int weight, E data) {
         int idx1 = findVertex(vertex1);
         int idx2 = findVertex(vertex2);
@@ -61,16 +71,22 @@ public class Graph_AM<V, E> {
     
     
     
-    private int findVertex(V vertex1) {
-        for (int i = 0; i < this.effectiveSize; i++) {
-            if (cmpVertices.compare(vertex1, vertices[i]) == 1)
-                return i;
+    public boolean disconnect(V vertex1, V vertex2) {
+        int idx1 = findVertex(vertex1);
+        int idx2 = findVertex(vertex2);
+        if (idx1 != -1 && idx2 != -1) {
+            this.adjacencyMatrix[idx1][idx2] = 0;
+            this.edgesMetadata[idx1][idx2] = null;
+            if (!this.isDirected) {
+                this.adjacencyMatrix[idx2][idx1] = 0;
+                this.edgesMetadata[idx2][idx1] = null;
+            }
+            return true;
         }
-        return -1;
+        return false;
     }
     
-    
-    
+        
     private void addCapacity() {
         V[] copy =          (V[]) (new Object[capacity*2]);
         int[][] adjTemp =   new int[capacity*2][capacity*2];
