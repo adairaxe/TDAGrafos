@@ -1,5 +1,7 @@
 package tdas;
 
+import Comparators.ComparatorLazos;
+import Comparators.CompratorPerson;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -221,5 +223,31 @@ public class Graph_AL<V, E> {
             s = s + v.getContent() + v.getEdges() + "\n"; 
         }
         return s;
+    }
+    
+    
+    public static Graph_AL<Person, String> buildGraphTwo(){
+        CompratorPerson cmpPersona = new CompratorPerson();
+        ComparatorLazos cmpLazos = new ComparatorLazos();
+        
+        Graph_AL<Person, String> grafo2 = new Graph_AL(cmpPersona, cmpLazos, true);
+        Person p1 = new Person("Alice", 32, "Ingeniero",    "Guayaquil" );
+        Person p2 = new Person("Bob",   28, "Chef",         "Guayaquil" );
+        Person p3 = new Person("Carol", 27, "Contadora",    "Quito"     );
+        Person p4 = new Person("Dave",  31, "Investigador", "Cuenca"    );
+        
+        grafo2.addVertex(p1);
+        grafo2.addVertex(p2);
+        grafo2.addVertex(p3);
+        grafo2.addVertex(p4);
+        
+        grafo2.connect(p1, p4, 1,   "odia");
+        grafo2.connect(p4, p3, 2,   "odia");
+        grafo2.connect(p3, p2, 1,   "ama");
+        grafo2.connect(p2, p1, 3,   "le gusta");
+        grafo2.connect(p3, p1, 2,   "ama");
+        grafo2.connect(p3, p4, 4,   "ama");
+        
+        return grafo2;
     }
 }

@@ -1,6 +1,7 @@
 package tdas;
 // edge
 
+import Comparators.CompratorPerson;
 import java.util.Comparator;
 
 public class Graph_AM<V, E> {
@@ -13,23 +14,31 @@ public class Graph_AM<V, E> {
     private int effectiveSize;
     private int capacity;
     private boolean isDirected;
-
-    public Graph_AM(Comparator<V> cmpVertices, Comparator<E> cmpEdges) {
+    
+    
+    
+    public Graph_AM(Comparator<V> cmpVertices, Comparator<E> cmpEdges, boolean directed) {
         this.cmpVertices = cmpVertices;
         this.cmpEdges = cmpEdges;
+        this.isDirected = directed;
+        this.capacity = 100;
+        this.vertices = (V[]) (new Object[capacity]);
+        this.adjacencyMatrix = new int[capacity][capacity];
+        this.edgesMetadata = (E[][]) (new Object[capacity][capacity]);
         
-//        this.vertices = 100;
-//        this.adjacencyMatrix = new int[10][10];
-//        this.edgesMetadata = new E[10][10];
     }
     
     
-    public boolean addVertex(V v1){
-        for(int i = 0 ; i < effectiveSize; i ++){
-            this.adjacencyMatrix[effectiveSize][i] = 0;
-            this.edgesMetadata[effectiveSize][i] = null;
+    
+    public boolean addVertex(V content){
+        if (content == null) {
+            return false;
+        } else if (capacity == effectiveSize) {
+            addCapacity();
         }
-        this.effectiveSize++;
+        
+        vertices[effectiveSize]=content;
+        effectiveSize++;
         return true;
     }
     
@@ -54,9 +63,76 @@ public class Graph_AM<V, E> {
     
     private int findVertex(V vertex1) {
         for (int i = 0; i < this.effectiveSize; i++) {
-            if (cmpVertices.compare(vertex1, vertices[i]) == 0)
+            if (cmpVertices.compare(vertex1, vertices[i]) == 1)
                 return i;
         }
         return -1;
     }
+    
+    
+    
+    private void addCapacity() {
+        V[] copy =          (V[]) (new Object[capacity*2]);
+        int[][] adjTemp =   new int[capacity*2][capacity*2];
+        E[][] edgTemp =     (E[][]) (new Object[capacity*2][capacity*2]);
+        
+        for (int i = 0; i < this.capacity; i++) {
+            copy[i] = this.vertices[i];
+            
+            for(int j = 0; j < capacity; j++){
+                adjTemp[i][j] = this.adjacencyMatrix[i][j];
+                edgTemp[i][j] = this.edgesMetadata[i][j];
+            }
+        }
+        vertices = copy;
+        adjacencyMatrix = adjTemp;
+        edgesMetadata = edgTemp;
+        capacity = capacity * 2;
+    }
+    
+    
+    
+    @Override
+    public String toString() {
+        String strAdayance = "";
+        String strMetadata = "";
+        for(int i = 0 ; i < this.effectiveSize ; i++){
+            for(int j = 0 ; j < this.effectiveSize ; j++){
+                strAdayance = strAdayance + this.adjacencyMatrix[i][j] + " ";
+                strMetadata = strMetadata + this.edgesMetadata[i][j] + " ";
+            }
+            strAdayance = strAdayance + "\n";
+            strMetadata = strMetadata + "\n";
+            
+        }
+        return "Matriz de adyacencia" + "\n" + strAdayance + "\n"
+               + "Matriz de metadata"+ "\n" + strMetadata;
+    }   
+    
+    
+     public static Graph_AM<Person,Integer> buildGraphOne(){
+        CompratorPerson cmpPersona = new CompratorPerson();
+        Graph_AM<Person, Integer> grafo1 = new Graph_AM<>(cmpPersona, (x,y) -> {return x-y;} , true);
+        
+        Person Alice = new Person("Alice", 32, "Ingeniero",    "Guayaquil" );
+        Person Bob = new Person("Bob",   28, "Chef",         "Guayaquil" );
+        Person Carol = new Person("Carol", 27, "Contadora",    "Quito"     );
+        Person Dave = new Person("Dave",  31, "Investigador", "Cuenca"    );
+        
+        grafo1.addVertex(Alice);
+        grafo1.addVertex(Bob);
+        grafo1.addVertex(Carol);
+        grafo1.addVertex(Dave);
+        
+        grafo1.connect(Alice, Dave, 3,   null);
+        grafo1.connect(Dave, Carol, 2,   null);
+        grafo1.connect(Carol, Bob, 1,   null);
+        grafo1.connect(Bob, Alice, 3,   null);
+        grafo1.connect(Carol, Alice, 2,   null);
+        grafo1.connect(Carol, Dave, 4,   null);
+        
+        return grafo1;
+    }
+    
+    
 }
