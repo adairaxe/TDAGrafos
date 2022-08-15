@@ -16,6 +16,8 @@ public class CompratorPerson implements Comparator<Person>{
 
     @Override
     public int compare(Person o1, Person o2) {
+        if(o1 == null || o2 == null)
+            return 0;
         if(o1.getNombre().equals(o2.getNombre()))
             return 1;
         else 

@@ -82,6 +82,44 @@ public class Graph_AL<V, E> {
     
     
     
+    public boolean disconnect(V vertex1, V vertex2, int weight, E data) {
+        Vertex<V, E> v1 = this.findVertex(vertex1);
+        Vertex<V, E> v2 = this.findVertex(vertex2);
+        
+        if(v1 != null && v2 != null){
+            
+            if(v1.getEdges() == null)
+                return false; 
+            
+            else{
+                LinkedList<Edge<E, V>> edges = v1.getEdges();
+                for(Edge<E, V> edge : edges){
+                    if(this.cmpVertices.compare(edge.getTarget().getContent(), v2.getContent()) == 1)
+                        edge = null;                        
+                    
+                }
+            }
+            
+            if (!this.isDirected) {              
+                if(v2.getEdges() == null)
+                return false; 
+            
+                else{
+                    LinkedList<Edge<E, V>> edges = v2.getEdges();
+                    for(Edge<E, V> edge : edges){
+                        if(this.cmpVertices.compare(edge.getTarget().getContent(), v1.getContent()) == 1)
+                            edge = null;                        
+                        
+                    }
+                }            
+            }
+            return true;
+        }
+        return false;
+    }
+    
+    
+    
     public boolean areVertxValid(V vertex1, V vertex2){
         return vertex1 != null && vertex2!= null;
     }
@@ -235,44 +273,6 @@ public class Graph_AL<V, E> {
             this.connect(findVertex1.getContent(), content, edge.getWeight(), edge.getMetadata());
             
         }
-    }
-    
-    
-    
-    public boolean disconnect(V vertex1, V vertex2, int weight, E data) {
-        Vertex<V, E> v1 = this.findVertex(vertex1);
-        Vertex<V, E> v2 = this.findVertex(vertex2);
-        
-        if(v1 != null && v2 != null){
-            
-            if(v1.getEdges() == null)
-                return false; 
-            
-            else{
-                LinkedList<Edge<E, V>> edges = v1.getEdges();
-                for(Edge<E, V> edge : edges){
-                    if(this.cmpVertices.compare(edge.getTarget().getContent(), v2.getContent()) == 1){
-                        edge = null;                        
-                    }
-                }
-            }
-            
-            if (!this.isDirected) {              
-                if(v2.getEdges() == null)
-                return false; 
-            
-                else{
-                    LinkedList<Edge<E, V>> edges = v2.getEdges();
-                    for(Edge<E, V> edge : edges){
-                        if(this.cmpVertices.compare(edge.getTarget().getContent(), v1.getContent()) == 1){
-                            edge = null;                        
-                        }
-                    }
-                }            
-            }
-            return true;
-        }
-        return false;
     }
     
     
