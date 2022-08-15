@@ -17,6 +17,11 @@ public class Main {
         
         Graph_AL<Person, String> buildGraphTwo = Graph_AL.buildGraphTwo();
         System.out.println(buildGraphTwo);
+        
+        System.out.println("Grafo copia");
+        
+        Graph_AL<Person, String> copyGrafo = buildGraphTwo.copyGrafo();
+        System.out.println(copyGrafo);
 
     }
   
