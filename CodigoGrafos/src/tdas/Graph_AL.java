@@ -3,10 +3,12 @@ package tdas;
 import Comparators.ComparatorLazos;
 import Comparators.CompratorPerson;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 import java.util.Stack;
 import tdas.Edge;
 import tdas.Vertex;
@@ -66,8 +68,12 @@ public class Graph_AL<V, E> {
                 v1.setEdges(    new LinkedList()    ); 
             
             Edge<E, V> newEdge = new Edge(v1, v2, weight, data);
+            for (Edge<E, V> edge : v1.getEdges()){
+                if(this.cmpEdges.compare(edge.getMetadata(), newEdge.getMetadata()) == 1 && this.cmpVertices.compare(vertex1, vertex2) == 1)
+                    return false;   
+            }
             v1.getEdges().add(newEdge);
-            
+  
             if (!this.isDirected) {              
                 Edge<E, V> newEdge2 = new Edge(v2, v1, weight, data);      
                 if(v2.getEdges() == null)
@@ -246,31 +252,72 @@ public class Graph_AL<V, E> {
         }
         return s;
     }
+        
     
     
-    
-    public void invertDirection (V content){
-        Vertex<V, E> findVertex = this.findVertex(content);
-        LinkedList<Edge<E, V>> edgesOfVertex = findVertex.getEdges();     
-        for(Edge<E, V> edge : edgesOfVertex){
-            System.out.println(edge.getSource().toString() + edge.getTarget() + edge.getMetadata().toString());
-            V vToInvert = edge.getTarget().getContent();
-            this.connect(vToInvert, content, edge.getWeight(), edge.getMetadata());  
-            this.disconnect(content, vToInvert);
+    public Graph_AL copyInvertGrafo(){
+        if(this.isDirected){
+            Graph_AL<V, E> graph_AL = new Graph_AL(this.cmpVertices, this.cmpEdges, this.isDirected);
+            
+            for(Vertex<V, E> v : this.vertices){
+                graph_AL.addVertex(v.getContent());
+                LinkedList<Edge<E, V>> edges = v.getEdges();
+                if(edges != null){
+                    for(Edge<E, V> edge : edges){
+                        graph_AL.addVertex(edge.getTarget().getContent());
+                        graph_AL.connect(edge.getTarget().getContent(), v.getContent(), edge.getWeight(), edge.getMetadata());
+                    }
+                }   
+            }
+            return graph_AL;
         }
-        while(!edgesOfVertex.isEmpty())
-            edgesOfVertex.removeFirst();
+        else
+            return null;
     }
     
     
     
-    public Graph_AL copyInvertGrafo(){
-        Graph_AL<V, E> graph_AL = new Graph_AL(this.cmpVertices, this.cmpEdges, this.isDirected);
-        LinkedList<Vertex<V, E>> vertices1 = graph_AL.getVertices();
-        for(Vertex<V, E> v : vertices1){
-            graph_AL.invertDirection(v.getContent());
+    public LinkedList<LinkedList<V>> getcomponetStrongConvex(){
+        if(!this.isDirected){
+            System.out.println("El grano es dirigido");
+            return null;
         }
-        return graph_AL;
+        LinkedList<LinkedList<V>> listTotalComponents = new LinkedList();
+        Graph_AL copyInvertGrafo = this.copyInvertGrafo();
+        
+        LinkedList<V> listComp = new LinkedList();
+   
+        LinkedList<V> depthTraversalOrigin = this.breadTraversal(this.getVertices().getFirst().getContent(), false);
+        LinkedList depthTraversal1Invert = copyInvertGrafo.breadTraversal(this.getVertices().getFirst().getContent(), false);
+
+        Set<V> set = new HashSet();
+        set.addAll(depthTraversalOrigin);
+        set.addAll(depthTraversal1Invert);
+        Iterator<V> iterator = set.iterator();
+        while(iterator.hasNext())
+            listComp.add(iterator.next());
+        listTotalComponents.add(listComp);
+        
+        Queue<Vertex<V, E>> cola = new LinkedList();
+        for(Vertex<V, E> v : this.getVertices()){
+            if(!v.isVisited())
+                cola.offer(v);
+        }
+
+        while(!cola.isEmpty()){
+            LinkedList<V> listComp2 = new LinkedList();
+            this.resetTotal();
+            LinkedList<V> depthTraversalOrigin2 = this.breadTraversal(cola.peek().getContent(), false);
+            LinkedList depthTraversal1Invert2 = copyInvertGrafo.breadTraversal(cola.poll().getContent(), false);
+            Set<V> set2 = new HashSet();
+            set2.addAll(depthTraversalOrigin2);
+            set2.addAll(depthTraversal1Invert2);
+            Iterator<V> iterator2 = set2.iterator();
+            while(iterator2.hasNext())
+                listComp2.add(iterator2.next());
+                listTotalComponents.add(listComp2);
+            }
+        return listTotalComponents;  
     }
     
     
@@ -279,25 +326,45 @@ public class Graph_AL<V, E> {
         CompratorPerson cmpPersona = new CompratorPerson();
         ComparatorLazos cmpLazos = new ComparatorLazos();
         
-        Graph_AL<Person, String> grafo2 = new Graph_AL(cmpPersona, cmpLazos, true);
-        Person p1 = new Person("Alice", 32, "Ingeniero",    "Guayaquil" );
-        Person p2 = new Person("Bob",   28, "Chef",         "Guayaquil" );
-        Person p3 = new Person("Carol", 27, "Contadora",    "Quito"     );
-        Person p4 = new Person("Dave",  31, "Investigador", "Cuenca"    );
+//        Graph_AL<Person, String> grafo1 = new Graph_AL(cmpPersona, cmpLazos, true);
+//        Person Alice    =      new Person("Alice",      32, "Ingeniero",    "Guayaquil" );
+//        Person Dave     =      new Person("Dave",       31, "Investigador", "Cuenca"    );
+//        Person Carol    =      new Person("Carol",      27, "Contadora",    "Quito"     );
+//        
+//        Person Bob      =      new Person("Bob",        28, "Chef",         "Guayaquil" );
+//        Person Melanie  =      new Person("Melanie",    31, "Biotecnologa", "Guayaquil" );
         
-        grafo2.addVertex(p1);
-        grafo2.addVertex(p2);
-        grafo2.addVertex(p3);
-        grafo2.addVertex(p4);
+        Graph_AL<Person, String> grafo1 = new Graph_AL(cmpPersona, cmpLazos, true);
+        Person Alice    =      new Person("B",      32, "Ingeniero",    "Guayaquil" );
+        Person Dave     =      new Person("S",       31, "Investigador", "Cuenca"    );
+        Person Carol    =      new Person("C",      27, "Contadora",    "Quito"     );
         
-        grafo2.connect(p1, p4, 1,   "odia");
-        grafo2.connect(p4, p3, 2,   "odia");
-        grafo2.connect(p3, p2, 1,   "ama");
-        grafo2.connect(p2, p1, 3,   "le gusta");
-        grafo2.connect(p3, p1, 2,   "ama");
-        grafo2.connect(p3, p4, 4,   "ama");
+        Person Bob      =      new Person("H",        28, "Chef",         "Guayaquil" );
+        Person Melanie  =      new Person("F",    31, "Biotecnologa", "Guayaquil" );
+
+        grafo1.addVertex(Alice);
+        grafo1.addVertex(Bob);
+        grafo1.addVertex(Carol);
+        grafo1.addVertex(Dave);
+        grafo1.addVertex(Melanie);
         
-        return grafo2;
+//        grafo1.connect(Alice, Dave, 3,   "ama");
+//        grafo1.connect(Alice, Carol, 3,   "odia");
+//        grafo1.connect(Dave, Carol, 2,   "le gusta");
+//        grafo1.connect(Bob, Dave, 1,   "odia"); // 
+//        grafo1.connect(Bob, Carol, 1,   "odia");
+        
+        grafo1.connect(Alice, Dave, 3,   "ama"); //B
+        grafo1.connect(Dave, Carol, 3,   "odia"); // S
+        grafo1.connect(Carol, Alice, 2,   "le gusta"); // C
+        
+        grafo1.connect(Bob, Alice, 1,   "odia"); // H
+        grafo1.connect(Bob, Melanie, 1,   "odia"); //F
+        
+        grafo1.connect(Melanie, Dave, 1,   "atrae");
+        grafo1.connect(Melanie, Carol, 1,   "le gusta");
+        
+        return grafo1;
     }
     
     

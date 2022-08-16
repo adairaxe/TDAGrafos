@@ -1,6 +1,6 @@
 package tdas;
 
-class Edge<E,V> {
+public class Edge<E,V> {
     private Vertex<V,E> source;
     private Vertex<V,E> target;
     private int weight;
