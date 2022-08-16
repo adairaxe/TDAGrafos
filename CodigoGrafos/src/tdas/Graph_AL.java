@@ -211,24 +211,30 @@ public class Graph_AL<V, E> {
     
     
     
-    public LinkedList<LinkedList<Vertex<V, E>>> getConvexGrafoNotDiriged(){
-        LinkedList listComponents = new LinkedList();
-        while(true){  
-            Vertex<V, E> firstVertexNotVisited = this.getFirstVertexNotVisited();
-            
-            if(firstVertexNotVisited == null)
-                break;
-            
-            LinkedList<V> depthTraversal = this.depthTraversal(firstVertexNotVisited.getContent(), false);
-            listComponents.add(depthTraversal);
+    public LinkedList<LinkedList<Vertex<V, E>>> getConvexGrafo(){
+        if(!this.isDirected){
+            LinkedList listComponents = new LinkedList();
+            while(true){  
+                Vertex<V, E> firstVertexNotVisited = this.getFirstVertexNotVisited();
+
+                if(firstVertexNotVisited == null)
+                    break;
+
+                LinkedList<V> depthTraversal = this.depthTraversal(firstVertexNotVisited.getContent(), false);
+                listComponents.add(depthTraversal);
+            }
+
+            if(listComponents.size() == 1)
+                System.out.println("El grafo es conexo");
+            else 
+                System.out.println("Las componentes conexas del grafo son: ");
+
+            return listComponents;
         }
-        
-        if(listComponents.size() == 1)
-            System.out.println("El grafo es conexo");
-        else 
-            System.out.println("Las componentes conexas del grafo son: ");
-        
-        return listComponents;
+        else{
+            System.out.println("El concepto de gravo y componentes convexas sólo aplica para grafos no dirigidos");
+            return null;
+        }
     }
     
     
@@ -255,7 +261,7 @@ public class Graph_AL<V, E> {
         
     
     
-    public Graph_AL copyInvertGrafo(){
+    private Graph_AL copyInvertGrafo(){
         if(this.isDirected){
             Graph_AL<V, E> graph_AL = new Graph_AL(this.cmpVertices, this.cmpEdges, this.isDirected);
             
@@ -279,43 +285,44 @@ public class Graph_AL<V, E> {
     
     public LinkedList<LinkedList<V>> getcomponetStrongConvex(){
         if(!this.isDirected){
-            System.out.println("El grano es dirigido");
+            System.out.println("El grafo debe ser dirigido");
             return null;
         }
         LinkedList<LinkedList<V>> listTotalComponents = new LinkedList();
         Graph_AL copyInvertGrafo = this.copyInvertGrafo();
-        
-        LinkedList<V> listComp = new LinkedList();
-   
+
         LinkedList<V> depthTraversalOrigin = this.breadTraversal(this.getVertices().getFirst().getContent(), false);
         LinkedList depthTraversal1Invert = copyInvertGrafo.breadTraversal(this.getVertices().getFirst().getContent(), false);
 
-        Set<V> set = new HashSet();
-        set.addAll(depthTraversalOrigin);
-        set.addAll(depthTraversal1Invert);
-        Iterator<V> iterator = set.iterator();
+        Set<V> set1 = new HashSet();
+        Set<V> set2 = new HashSet();
+        set1.addAll(depthTraversalOrigin);
+        set2.addAll(depthTraversal1Invert);
+        set1.retainAll(set2); 
+        LinkedList<V> listComp = new LinkedList();
+        Iterator<V> iterator = set1.iterator();
         while(iterator.hasNext())
             listComp.add(iterator.next());
         listTotalComponents.add(listComp);
-        
         Queue<Vertex<V, E>> cola = new LinkedList();
         for(Vertex<V, E> v : this.getVertices()){
             if(!v.isVisited())
                 cola.offer(v);
         }
-
         while(!cola.isEmpty()){
             LinkedList<V> listComp2 = new LinkedList();
             this.resetTotal();
             LinkedList<V> depthTraversalOrigin2 = this.breadTraversal(cola.peek().getContent(), false);
             LinkedList depthTraversal1Invert2 = copyInvertGrafo.breadTraversal(cola.poll().getContent(), false);
-            Set<V> set2 = new HashSet();
-            set2.addAll(depthTraversalOrigin2);
-            set2.addAll(depthTraversal1Invert2);
-            Iterator<V> iterator2 = set2.iterator();
-            while(iterator2.hasNext())
-                listComp2.add(iterator2.next());
-                listTotalComponents.add(listComp2);
+            Set<V> set3 = new HashSet();
+            Set<V> set4 = new HashSet();
+            set3.addAll(depthTraversalOrigin2);
+            set4.addAll(depthTraversal1Invert2);
+            set3.retainAll(set4); 
+            Iterator<V> iterator3 = set3.iterator();
+            while(iterator3.hasNext())
+                listComp2.add(iterator3.next());
+            listTotalComponents.add(listComp2);
             }
         return listTotalComponents;  
     }
@@ -347,12 +354,6 @@ public class Graph_AL<V, E> {
         grafo1.addVertex(Carol);
         grafo1.addVertex(Dave);
         grafo1.addVertex(Melanie);
-        
-//        grafo1.connect(Alice, Dave, 3,   "ama");
-//        grafo1.connect(Alice, Carol, 3,   "odia");
-//        grafo1.connect(Dave, Carol, 2,   "le gusta");
-//        grafo1.connect(Bob, Dave, 1,   "odia"); // 
-//        grafo1.connect(Bob, Carol, 1,   "odia");
         
         grafo1.connect(Alice, Dave, 3,   "ama"); //B
         grafo1.connect(Dave, Carol, 3,   "odia"); // S
