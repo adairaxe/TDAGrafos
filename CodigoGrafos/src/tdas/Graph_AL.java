@@ -82,37 +82,21 @@ public class Graph_AL<V, E> {
     
     
     
-    public boolean disconnect(V vertex1, V vertex2, int weight, E data) {
+    public boolean disconnect(V vertex1, V vertex2) {
         Vertex<V, E> v1 = this.findVertex(vertex1);
         Vertex<V, E> v2 = this.findVertex(vertex2);
-        
         if(v1 != null && v2 != null){
-            
             if(v1.getEdges() == null)
                 return false; 
-            
             else{
                 LinkedList<Edge<E, V>> edges = v1.getEdges();
                 for(Edge<E, V> edge : edges){
                     if(this.cmpVertices.compare(edge.getTarget().getContent(), v2.getContent()) == 1)
-                        edge = null;                        
-                    
+                        edges.remove(edge);      
                 }
-            }
-            
-            if (!this.isDirected) {              
-                if(v2.getEdges() == null)
-                return false; 
-            
-                else{
-                    LinkedList<Edge<E, V>> edges = v2.getEdges();
-                    for(Edge<E, V> edge : edges){
-                        if(this.cmpVertices.compare(edge.getTarget().getContent(), v1.getContent()) == 1)
-                            edge = null;                        
-                        
-                    }
-                }            
-            }
+            }    
+            if (!this.isDirected) 
+                this.disconnect(vertex2, vertex1);            
             return true;
         }
         return false;
@@ -267,18 +251,25 @@ public class Graph_AL<V, E> {
     
     public void invertDirection (V content){
         Vertex<V, E> findVertex = this.findVertex(content);
-        LinkedList<Edge<E, V>> edgesOfVertex = findVertex.getEdges();
+        LinkedList<Edge<E, V>> edgesOfVertex = findVertex.getEdges();     
         for(Edge<E, V> edge : edgesOfVertex){
-            Vertex<V, E> findVertex1 = this.findVertex(edge.getTarget().getContent());
-            this.connect(findVertex1.getContent(), content, edge.getWeight(), edge.getMetadata());
-            
+            System.out.println(edge.getSource().toString() + edge.getTarget() + edge.getMetadata().toString());
+            V vToInvert = edge.getTarget().getContent();
+            this.connect(vToInvert, content, edge.getWeight(), edge.getMetadata());  
+            this.disconnect(content, vToInvert);
         }
+        while(!edgesOfVertex.isEmpty())
+            edgesOfVertex.removeFirst();
     }
     
     
     
-    public Graph_AL copyGrafo(){
-        Graph_AL graph_AL = new Graph_AL(this.vertices,this.cmpVertices, this.cmpEdges, this.isDirected);
+    public Graph_AL copyInvertGrafo(){
+        Graph_AL<V, E> graph_AL = new Graph_AL(this.cmpVertices, this.cmpEdges, this.isDirected);
+        LinkedList<Vertex<V, E>> vertices1 = graph_AL.getVertices();
+        for(Vertex<V, E> v : vertices1){
+            graph_AL.invertDirection(v.getContent());
+        }
         return graph_AL;
     }
     
