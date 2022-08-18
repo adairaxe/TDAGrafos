@@ -3,6 +3,7 @@ package tdas;
 import Comparators.ComparatorLazos;
 import Comparators.CompratorPerson;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -212,36 +213,31 @@ public class Graph_AL<V, E> {
     
     
     public LinkedList<LinkedList<Vertex<V, E>>> getConvexGrafo(){
-        if(!this.isDirected){
-            LinkedList listComponents = new LinkedList();
-            while(true){  
-                Vertex<V, E> firstVertexNotVisited = this.getFirstVertexNotVisited();
+        
+        LinkedList listComponents = new LinkedList();
+        while(true){  
+            Vertex<V, E> firstVertexNotVisited = this.getFirstVertexNotVisited();
 
-                if(firstVertexNotVisited == null)
-                    break;
+            if(firstVertexNotVisited == null)
+                break;
 
-                LinkedList<V> depthTraversal = this.depthTraversal(firstVertexNotVisited.getContent(), false);
-                listComponents.add(depthTraversal);
-            }
-
-            if(listComponents.size() == 1)
-                System.out.println("El grafo es conexo");
-            else 
-                System.out.println("Las componentes conexas del grafo son: ");
-
-            return listComponents;
+            LinkedList<V> depthTraversal = this.depthTraversal(firstVertexNotVisited.getContent(), false);
+            listComponents.add(depthTraversal);
         }
-        else{
-            System.out.println("El concepto de gravo y componentes convexas sólo aplica para grafos no dirigidos");
-            return null;
-        }
+
+        if(listComponents.size() == 1)
+            System.out.println("El grafo es conexo");
+        else 
+            System.out.println("Las componentes conexas del grafo son: ");
+
+        this.resetTotal();
+        return listComponents;
     }
     
     
     
     public Vertex<V, E> getFirstVertexNotVisited(){
-        for(Vertex<V, E> v : this.getVertices()){
-            
+        for(Vertex<V, E> v : this.getVertices()){    
             if(!v.isVisited())
                 return v;
         }
@@ -301,6 +297,7 @@ public class Graph_AL<V, E> {
         set1.retainAll(set2); 
         LinkedList<V> listComp = new LinkedList();
         Iterator<V> iterator = set1.iterator();
+        
         while(iterator.hasNext())
             listComp.add(iterator.next());
         listTotalComponents.add(listComp);
@@ -309,6 +306,7 @@ public class Graph_AL<V, E> {
             if(!v.isVisited())
                 cola.offer(v);
         }
+        
         while(!cola.isEmpty()){
             LinkedList<V> listComp2 = new LinkedList();
             this.resetTotal();
@@ -320,10 +318,13 @@ public class Graph_AL<V, E> {
             set4.addAll(depthTraversal1Invert2);
             set3.retainAll(set4); 
             Iterator<V> iterator3 = set3.iterator();
+            
             while(iterator3.hasNext())
                 listComp2.add(iterator3.next());
             listTotalComponents.add(listComp2);
             }
+        this.resetTotal();
+        System.out.println("Componentes fuertemente conexas del grafo: ");
         return listTotalComponents;  
     }
     
@@ -358,6 +359,7 @@ public class Graph_AL<V, E> {
         grafo1.connect(Alice, Dave, 3,   "ama"); //B
         grafo1.connect(Dave, Carol, 3,   "odia"); // S
         grafo1.connect(Carol, Alice, 2,   "le gusta"); // C
+        grafo1.connect(Carol, Bob, 2,   "interesa"); // C
         
         grafo1.connect(Bob, Alice, 1,   "odia"); // H
         grafo1.connect(Bob, Melanie, 1,   "odia"); //F
@@ -366,6 +368,87 @@ public class Graph_AL<V, E> {
         grafo1.connect(Melanie, Carol, 1,   "le gusta");
         
         return grafo1;
+    }
+    
+    
+    
+    public void dijkstraShortPath(V start, V end){
+        Vertex<V, E> vertexStart = this.findVertex(start);
+        Vertex<V, E> vertexEnd = this.findVertex(end);
+        
+        HashMap<Vertex<V, E> , Vertex<V, E>> mapVertex = new HashMap<>();
+        mapVertex.put(vertexStart, null);
+        
+        HashMap<Vertex<V, E> , Double> shortsPathsMap = new HashMap<>();
+        
+        for(Vertex<V, E> vertex : this.vertices){
+            if(vertex == vertexStart)
+                shortsPathsMap.put(vertexStart, 0.0);
+            else
+                shortsPathsMap.put(vertex, Double.POSITIVE_INFINITY);
+        }
+        
+        for (Edge<E, V> edge : vertexStart.getEdges()){
+            shortsPathsMap.put(edge.getTarget(), Double.parseDouble(String.valueOf(edge.getWeight())));
+            mapVertex.put(vertexEnd, vertexStart);
+        }
+        vertexStart.setVisited(true);
+        
+        while(true){
+            Vertex<V, E> currentVertex = closeReachableUnVisited(shortsPathsMap);
+            if(currentVertex == null){
+                System.out.println("There isn't a path between " + vertexStart.getContent() + " and " + vertexEnd.getContent());
+                return;
+            }
+            
+            if(currentVertex == vertexEnd){
+                System.out.println("The path with the smallest weight between " + vertexStart.getContent() + " and " + vertexEnd.getContent());
+                Vertex<V, E> child = vertexEnd;
+                String path = vertexEnd.getContent().toString();
+                while(true){
+                    Vertex<V, E> parent = mapVertex.get(child);
+                    if(parent == null)
+                        break;
+                    path  = parent.getContent() + " " + path;
+                    child = parent;
+                }
+                
+                System.out.println(path);
+                System.out.println("The path costs: " + shortsPathsMap.get(vertexEnd));
+                return;
+            }
+            currentVertex.setVisited(true);
+            
+            for(Edge<E, V> edge : currentVertex.getEdges()){
+                if(edge.getTarget().isVisited())
+                    continue;
+                if(shortsPathsMap.get(currentVertex) + edge.getWeight() < shortsPathsMap.get(edge.getTarget())){
+                    shortsPathsMap.put(edge.getTarget(), shortsPathsMap.get(currentVertex) + edge.getWeight());
+                    mapVertex.put(edge.getTarget(), currentVertex);
+                }
+            }      
+        }
+    }
+    
+    
+    
+    private Vertex<V, E> closeReachableUnVisited(HashMap<Vertex<V, E>, Double> shortsPathsMap) {
+        double shortDistance = Double.POSITIVE_INFINITY;
+        Vertex<V, E> closestReachableNode = null;
+        for(Vertex<V, E> vertex : this.vertices){
+            if(vertex.isVisited())
+                continue;
+            
+            double currentDistance = shortsPathsMap.get(vertex);
+            if(currentDistance == Double.POSITIVE_INFINITY)
+                continue;
+            
+            if(currentDistance < shortDistance){
+                shortDistance = currentDistance;
+                closestReachableNode = vertex;
+            }
+        }
+        return closestReachableNode;
     }
     
     
