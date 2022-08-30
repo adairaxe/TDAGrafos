@@ -1,3 +1,4 @@
+
 package tdas;
 
 import Comparators.ComparatorLazos;
@@ -36,6 +37,11 @@ public class Graph_AL<V, E> {
         this.vertices = new LinkedList();
         this.cmpVertices = cmpVertices;
         this.cmpEdges = cmpEdges;
+        this.isDirected = isDirected;
+    }
+
+    public Graph_AL(Comparator<V> cmpVertices, boolean isDirected) {
+        this.cmpVertices = cmpVertices;
         this.isDirected = isDirected;
     }
     
@@ -248,7 +254,7 @@ public class Graph_AL<V, E> {
     
     @Override
     public String toString(){
-        String s = "";
+        String s = " ";
         for(Vertex<V,E> v : this.vertices){
             s = s + v.getContent() + v.getEdges() + "\n"; 
         }
@@ -288,7 +294,7 @@ public class Graph_AL<V, E> {
         Graph_AL copyInvertGrafo = this.copyInvertGrafo();
 
         LinkedList<V> depthTraversalOrigin = this.breadTraversal(this.getVertices().getFirst().getContent(), false);
-        LinkedList depthTraversal1Invert = copyInvertGrafo.breadTraversal(this.getVertices().getFirst().getContent(), false);
+        LinkedList depthTraversal1Invert = copyInvertGrafo.breadTraversal(this.getVertices().getFirst().getContent(), true);
 
         Set<V> set1 = new HashSet();
         Set<V> set2 = new HashSet();
@@ -377,8 +383,9 @@ public class Graph_AL<V, E> {
         Vertex<V, E> vertexEnd = this.findVertex(end);
         
         HashMap<Vertex<V, E> , Vertex<V, E>> mapVertex = new HashMap<>();
-        mapVertex.put(vertexStart, null);
         
+        mapVertex.put(vertexStart, null);
+        mapVertex.put(vertexEnd, vertexStart);
         HashMap<Vertex<V, E> , Double> shortsPathsMap = new HashMap<>();
         
         for(Vertex<V, E> vertex : this.vertices){
@@ -389,13 +396,16 @@ public class Graph_AL<V, E> {
         }
         
         for (Edge<E, V> edge : vertexStart.getEdges()){
-            shortsPathsMap.put(edge.getTarget(), Double.parseDouble(String.valueOf(edge.getWeight())));
-            mapVertex.put(vertexEnd, vertexStart);
+            shortsPathsMap.put(edge.getTarget(), Double.parseDouble(String.valueOf(edge.getWeight())));       
         }
-        vertexStart.setVisited(true);
+        System.out.println(shortsPathsMap);
         
+        vertexStart.setVisited(true);
+        int i = 0;
         while(true){
             Vertex<V, E> currentVertex = closeReachableUnVisited(shortsPathsMap);
+            System.out.println("" + i + " : " + currentVertex);
+            i++;
             if(currentVertex == null){
                 System.out.println("There isn't a path between " + vertexStart.getContent() + " and " + vertexEnd.getContent());
                 return;
@@ -405,6 +415,7 @@ public class Graph_AL<V, E> {
                 System.out.println("The path with the smallest weight between " + vertexStart.getContent() + " and " + vertexEnd.getContent());
                 Vertex<V, E> child = vertexEnd;
                 String path = vertexEnd.getContent().toString();
+                System.out.println(mapVertex);
                 while(true){
                     Vertex<V, E> parent = mapVertex.get(child);
                     if(parent == null)
@@ -422,11 +433,13 @@ public class Graph_AL<V, E> {
             for(Edge<E, V> edge : currentVertex.getEdges()){
                 if(edge.getTarget().isVisited())
                     continue;
+                System.out.println("Edges --> " + edge.getTarget());
                 if(shortsPathsMap.get(currentVertex) + edge.getWeight() < shortsPathsMap.get(edge.getTarget())){
                     shortsPathsMap.put(edge.getTarget(), shortsPathsMap.get(currentVertex) + edge.getWeight());
                     mapVertex.put(edge.getTarget(), currentVertex);
                 }
-            }      
+            }
+            System.out.println(mapVertex);
         }
     }
     
@@ -436,15 +449,17 @@ public class Graph_AL<V, E> {
         double shortDistance = Double.POSITIVE_INFINITY;
         Vertex<V, E> closestReachableNode = null;
         for(Vertex<V, E> vertex : this.vertices){
+
             if(vertex.isVisited())
                 continue;
             
             double currentDistance = shortsPathsMap.get(vertex);
             if(currentDistance == Double.POSITIVE_INFINITY)
                 continue;
-            
+            System.out.println(vertex);
             if(currentDistance < shortDistance){
                 shortDistance = currentDistance;
+                System.out.println("nueva distancia corta " + shortDistance);
                 closestReachableNode = vertex;
             }
         }
